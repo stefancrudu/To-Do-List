@@ -8,15 +8,14 @@
 import Foundation
 
 struct Task: Codable, Equatable {
-    var id: UUID?
-    let name: String
-    let description: String?
-    let deadline: Date
+    var id: UUID = UUID()
+    var name: String
+    var description: String?
+    var deadline: Date
     var isDone: Bool
     
     
-    init(id: UUID?, name: String, description: String?, deadline:Date, isDone: Bool = false) {
-        self.id = id
+    init(name: String, description: String?, deadline:Date, isDone: Bool = false) {
         self.name = name
         self.description = description
         self.deadline = deadline

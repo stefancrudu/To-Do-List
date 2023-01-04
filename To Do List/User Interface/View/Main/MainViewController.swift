@@ -10,7 +10,7 @@ import UIKit
 class MainViewController: UITableViewController {
     private var tasks: [Task] = []
     private lazy var presenter: PresenterProtocol? = {
-        let presenter = Presenter()
+        let presenter = MainPresenter()
         presenter.delegate = self
         return presenter
     }()
@@ -33,9 +33,8 @@ private extension MainViewController {
     }
     
     @objc func addTask() {
-        let form = FormViewController()
-        form.presenter = presenter
-        navigationController?.show(form, sender: self)
+        let formViewController = FormViewController()
+        navigationController?.show(formViewController, sender: self)
     }
     
     @objc func sort() {
@@ -48,12 +47,12 @@ private extension MainViewController {
                 })
             )
         }
+        
         present(sortForm, animated: true)
     }
     
     @objc func isDone(sender: CheckBoxButton) {
         guard let id = sender.idTarget else { return }
-        
         presenter?.isDone(taskId: id)
     }
 }
@@ -64,26 +63,22 @@ extension MainViewController {
     }
 
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") {
             _, _, completionHandler in
             
             self.presenter?.delete(task: self.tasks[indexPath.row])
             completionHandler(true)
         }
-        
         deleteAction.image = UIImage(systemName: "trash")
-        
         
         let editAction = UIContextualAction(style: .normal, title: "Edit") {
             _, _, completionHandler in
+            
             let form = FormViewController()
-            form.presenter = self.presenter
             form.task = self.tasks[indexPath.row]
             self.show(form, sender: self)
             completionHandler(true)
         }
-               
         editAction.image = UIImage(systemName: "pencil")
         
         let swipeConfiguration = UISwipeActionsConfiguration(actions: [deleteAction, editAction])
@@ -101,9 +96,11 @@ extension MainViewController {
 }
 
 
-extension MainViewController:PresenterDelegateMainView {
-    func showError(_ error: Errors) {
-        
+extension MainViewController: PresenterDelegate {
+    func showError(_ error: AppError) {
+        let ac = UIAlertController(title: error.description.name, message: error.description.description, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: error.description.actionLabel, style: .default))
+        present(ac, animated: true)
     }
     
     func reloadData(with data: [Task]) {

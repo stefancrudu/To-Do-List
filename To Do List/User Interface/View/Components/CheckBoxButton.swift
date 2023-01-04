@@ -35,6 +35,6 @@ class CheckBoxButton: UIButton {
     }
     
     @objc func buttonTapped(sender: UIButton) {
-        isChecked = sender == self ? !isChecked : isChecked
+        isChecked.toggle()
     }
 }

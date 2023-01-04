@@ -7,12 +7,16 @@
 
 import UIKit
 
-class FormViewController: UIViewController, UITextFieldDelegate {
+class FormViewController: UIViewController {
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var descriptionTextField: UITextField!
     @IBOutlet weak var deadlineDatePiker: UIDatePicker!
     
-    var presenter:PresenterProtocol?
+    private lazy var presenter:FormPresenterProtocol = {
+        let presenter = FormPresenter()
+        presenter.task = task
+        return presenter
+    }()
     var task: Task? = nil
 
     override func viewDidLoad() {
@@ -36,13 +40,11 @@ private extension FormViewController {
             animated: true
         )
         navigationItem.rightBarButtonItem?.isEnabled = nameTextField.text?.count ?? 0 > 0
-      
     }
     
     func setupDelegates() {
         nameTextField.delegate = self
         descriptionTextField.delegate = self
-        presenter?.formDelegate = self
     }
     
     func setupListener() {
@@ -56,10 +58,22 @@ private extension FormViewController {
         deadlineDatePiker.date = task.deadline
     }
     
+    func showError(_ error: AppError) {
+         let ac = UIAlertController(title: error.description.name, message: error.description.description, preferredStyle: .alert)
+         ac.addAction(UIAlertAction(title: error.description.actionLabel, style: .default))
+         present(ac, animated: true)
+    }
+     
     @objc func save() {
         guard let name = nameTextField.text, nameTextField.text!.count > 0 else { showError(.noName); return }
-        
-        presenter?.save(with: Task(id: task?.id, name: name, description: descriptionTextField.text, deadline: deadlineDatePiker.date))
+        do {
+            try presenter.save(name: name, description: descriptionTextField.text ?? "", deadline: deadlineDatePiker.date)
+           
+        } catch let error as NSError {
+            print(error.description)
+            showError(error as? AppError ?? .defaultError)
+        }
+        navigationController?.popToRootViewController(animated: true)
     }
     
     @objc func nameTextFieldDidChange() {
@@ -69,7 +83,7 @@ private extension FormViewController {
     }
 }
 
- extension FormViewController {
+extension FormViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if let nextField = textField.superview?.viewWithTag(textField.tag + 1) as? UITextField {
                 nextField.becomeFirstResponder()
@@ -78,19 +92,4 @@ private extension FormViewController {
              }
              return false
     }
-}
-
-
-extension FormViewController: PresenterDelegateFormView {
-    func didSave() {
-        navigationController?.popToRootViewController(animated: true)
-    }
-    
-    
-    func showError(_ error: Errors) {
-        let ac = UIAlertController(title: error.description.name, message: error.description.description, preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: error.description.actionLabel, style: .default))
-        present(ac, animated: true)
-    }
-    
 }

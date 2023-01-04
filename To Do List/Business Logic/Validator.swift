@@ -22,13 +22,13 @@ class Validator {
 private extension Validator {
     func validateName(_ name: String) throws {
         if name.count > 20 {
-            throw Errors.nameLimit
+            throw AppError.nameLimit
         }
     }
     
     func validateDescription(_ description: String?) throws {
         if description?.count ?? 0 > 40 {
-            throw Errors.descriptionLimit
+            throw AppError.descriptionLimit
         }
     }
     
@@ -38,8 +38,8 @@ private extension Validator {
         let calendar = Calendar.current
         let maximDate = calendar.date(byAdding: dateComponent, to: Date())
        
-        guard let maximDate = maximDate else { throw Errors.noDate }
-        guard Calendar.current.compare(Date(), to: date, toGranularity: .day) != .orderedDescending else { throw Errors.noDate }
-        guard date < maximDate else { throw Errors.dateLimit }
+        guard let maximDate = maximDate else { throw AppError.noDate }
+        guard Calendar.current.compare(Date(), to: date, toGranularity: .day) != .orderedDescending else { throw AppError.noDate }
+        guard date < maximDate else { throw AppError.dateLimit }
     }
 }
